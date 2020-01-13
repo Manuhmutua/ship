@@ -1,0 +1,30 @@
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: rpmbuild
+spec:
+  inputs:
+    params:
+    - name: copr-cli-secret
+      description: copr cli secret
+      default: copr-cli-config
+    - name: github-token-secret
+      description: name of the secret holding the github-token
+      default: github-token
+    resources:
+    - name: source
+      type: git
+      targetPath: src
+  steps:
+  - name: build-rpm
+    image: quay.io/chmouel/rpmbuild
+    workingdir: /workspace/src
+    command: ["tekton/rpmbuild/build.sh"]
+    volumeMounts:
+      - name: copr-cli-config
+        mountPath: /var/secret/copr
+  volumes:
+    - name: copr-cli-config
+      secret:
+        secretName: "$(inputs.params.copr-cli-secret)"
